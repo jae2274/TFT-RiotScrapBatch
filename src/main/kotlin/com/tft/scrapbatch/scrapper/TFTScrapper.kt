@@ -1,6 +1,7 @@
 package com.tft.scrapbatch.scrapper
 
 import com.tft.scrapbatch.scrapper.entity.Champion
+import com.tft.scrapbatch.scrapper.entity.HtmlDoc
 import com.tft.scrapbatch.scrapper.entity.Item
 import com.tft.scrapbatch.scrapper.entity.Trait
 import com.tft.scrapbatch.scrapper.support.HtmlProvider
@@ -16,11 +17,14 @@ class TFTScrapper(
     private val htmlProvider: HtmlProvider
 ) {
 
+    val localeKrCookie = HtmlDoc.Cookie("locale", "ko_KR")
+    val localeEnCookie = HtmlDoc.Cookie("locale", "en_us")
 
     fun getChampions(season: String): List<Champion> {
 
+
         val doc: Document =
-            htmlProvider.getDoc("https://lolchess.gg/synergies/set$season")
+            htmlProvider.getDoc("https://lolchess.gg/synergies/set$season", listOf(localeKrCookie))
 
         val champions = mutableListOf<Champion>()
         val championElements =
@@ -39,7 +43,7 @@ class TFTScrapper(
             val imageUrl = element.select("img").attr("src")
 
             val championDoc =
-                htmlProvider.getDoc(tooltilUrl)
+                htmlProvider.getDoc(tooltilUrl, listOf(localeKrCookie))
 
             val championEngName = tooltilUrl.split("/").let { it[it.size - 1].split("_")[0] }
 
@@ -148,7 +152,7 @@ class TFTScrapper(
     fun getItems(season: String): List<Item> {
 
 
-        val doc: Document = htmlProvider.getDoc("https://lolchess.gg/items")
+        val doc: Document = htmlProvider.getDoc("https://lolchess.gg/items", listOf(localeKrCookie))
 
 
         val items = mutableListOf<Item>()
@@ -156,13 +160,11 @@ class TFTScrapper(
         for (itemDoc in doc.select(".guide-items-table > tbody > tr")) {
             val imageTag = itemDoc.select("td:nth-child(1) > img")
             val imageUrl = imageTag.attr("src")
-            val itemEngName = imageUrl.split("/")
-                .let { it[it.size - 1].split("_")[0] }
 
             val tooltipUrl = imageTag.attr("data-tooltip-url")
 
 
-            val tooltipDoc = htmlProvider.getDoc(tooltipUrl)
+            val tooltipDoc = htmlProvider.getDoc(tooltipUrl, listOf(localeKrCookie))
             val itemRoot: Elements = tooltipDoc.select("div.py-1")
 
             val itemName = itemRoot.select("div > p").text()
@@ -177,6 +179,11 @@ class TFTScrapper(
                     element.attr("alt")
                 )
             })
+
+
+            val tooltipDocForEng = htmlProvider.getDoc(tooltipUrl, listOf(localeEnCookie))
+
+            val itemEngName = tooltipDocForEng.select("div.py-1").select("div > p").text()
 
             val item: Item = Item(
                 itemName = itemName,

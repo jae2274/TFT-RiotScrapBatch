@@ -13,7 +13,6 @@ data class Champion(
     var _id: String? = null,
     var championName: String = "",
     var championEngName: String = "",
-    var championId: String? = null,
     var cost: Int = 0,
     var traits: List<Trait> = listOf(),
     var attachRange: Int = 0,
@@ -24,6 +23,9 @@ data class Champion(
     var maxMana: Int = 0,
     var imageUrl: String = "",
     var season: String = "",
+    var championId: String? = null,
+    var similarity: Double = 0.0,
+    var isFixed: Boolean = false,
 ) {
     @Entity
     @QueryEntity

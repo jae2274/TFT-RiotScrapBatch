@@ -14,13 +14,17 @@ class TFTScrapperTest {
     val season: String = "8"
 
     @Test
+//    @Disabled
     fun test() {
         service.saveChampionInfos(season)
+        service.setChampionId(season)
     }
 
     @Test
+//    @Disabled
     fun test2() {
         service.saveItemInfos(season)
+        service.setItemId(season)
     }
 
 }
