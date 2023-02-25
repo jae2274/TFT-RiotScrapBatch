@@ -1,9 +1,6 @@
 package com.tft.scrapbatch.scrapper
 
-import com.tft.scrapbatch.scrapper.entity.Champion
-import com.tft.scrapbatch.scrapper.entity.HtmlDoc
-import com.tft.scrapbatch.scrapper.entity.Item
-import com.tft.scrapbatch.scrapper.entity.Trait
+import com.tft.scrapbatch.scrapper.entity.*
 import com.tft.scrapbatch.scrapper.support.HtmlProvider
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -11,10 +8,11 @@ import org.jsoup.select.Elements
 import org.springframework.stereotype.Component
 import java.util.*
 import java.util.function.Consumer
+import java.util.stream.Collectors
 
 @Component
 class TFTScrapper(
-    private val htmlProvider: HtmlProvider
+        private val htmlProvider: HtmlProvider
 ) {
 
     val localeKrCookie = HtmlDoc.Cookie("locale", "ko_KR")
@@ -24,11 +22,11 @@ class TFTScrapper(
 
 
         val doc: Document =
-            htmlProvider.getDoc("https://lolchess.gg/synergies/set$season", listOf(localeKrCookie))
+                htmlProvider.getDoc("https://lolchess.gg/synergies/set$season", listOf(localeKrCookie))
 
         val champions = mutableListOf<Champion>()
         val championElements =
-            doc.select("div.container > div.row:nth-child(1) .guide-synergy-table__synergy__champions a div")
+                doc.select("div.container > div.row:nth-child(1) .guide-synergy-table__synergy__champions a div")
 
         val tootipUrls = mutableSetOf<String>()
 
@@ -43,39 +41,39 @@ class TFTScrapper(
             val imageUrl = element.select("img").attr("src")
 
             val championDoc =
-                htmlProvider.getDoc(tooltilUrl, listOf(localeKrCookie))
+                    htmlProvider.getDoc(tooltilUrl, listOf(localeKrCookie))
 
             val championEngName = tooltilUrl.split("/").let { it[it.size - 1].split("_")[0] }
 
             val championName =
-                championDoc.select(".p-2.text-left.font-size-11 div:nth-child(1) span.mr-2.align-middle").text()
+                    championDoc.select(".p-2.text-left.font-size-11 div:nth-child(1) span.mr-2.align-middle").text()
 
             val costStr =
-                championDoc.select(".p-2.text-left.font-size-11 div:nth-child(1) span.align-middle:not(.mr-2)")
-                    .text()
+                    championDoc.select(".p-2.text-left.font-size-11 div:nth-child(1) span.align-middle:not(.mr-2)")
+                            .text()
 
             val cost = Integer.valueOf(costStr)
 
             val traits = mutableListOf<Trait>()
             val traitImages =
-                championDoc.select(".p-2.text-left.font-size-11 div:nth-child(2) img.align-middle")
+                    championDoc.select(".p-2.text-left.font-size-11 div:nth-child(2) img.align-middle")
             val attachRange =
-                championDoc.select(".p-2.text-left.font-size-11 div:nth-child(3) i.fa.fa-square-full").size
+                    championDoc.select(".p-2.text-left.font-size-11 div:nth-child(3) i.fa.fa-square-full").size
 
             for (traitImage in traitImages) {
                 val synergyName = traitImage.attr("alt")
                 val synergyEngName = traitImage.attr("src").split("/")
-                    .let {
-                        it[it.size - 1].split("_")[0]
-                    }
+                        .let {
+                            it[it.size - 1].split("_")[0]
+                        }
 
                 traits.add(
-                    Trait(synergyName = synergyName, synergyEngName = synergyEngName)
+                        Trait(synergyName = synergyName, synergyEngName = synergyEngName)
                 )
             }
 
             val skillName =
-                championDoc.select(".p-2.text-left.font-size-11 div:nth-child(4) div.text-yellow").text()
+                    championDoc.select(".p-2.text-left.font-size-11 div:nth-child(4) div.text-yellow").text()
             val skillExplanation = championDoc.select(".p-2.text-left.font-size-11 div:nth-child(5)").text()
 
             val powersByLevel = mutableListOf<Map<Int, Champion.PowerByLevel>>()
@@ -84,19 +82,19 @@ class TFTScrapper(
                 val powerExplain = element.text()
                 try {
                     val powerType =
-                        powerExplain.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0]
-                            .trim { it <= ' ' }
+                            powerExplain.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0]
+                                    .trim { it <= ' ' }
                     val powerLevels =
-                        powerExplain.split(":".toRegex()).dropLastWhile { it.isEmpty() }
-                            .toTypedArray()[1].split("/".toRegex()).dropLastWhile { it.isEmpty() }
-                            .toTypedArray()
+                            powerExplain.split(":".toRegex()).dropLastWhile { it.isEmpty() }
+                                    .toTypedArray()[1].split("/".toRegex()).dropLastWhile { it.isEmpty() }
+                                    .toTypedArray()
 
                     val powerByLevel = mutableMapOf<Int, Champion.PowerByLevel>()
 
                     for (i in powerLevels.indices) {
                         val powerByLevel1 = Champion.PowerByLevel(
-                            effectName = powerType,
-                            effectPower = powerLevels[i].trim { it <= ' ' }
+                                effectName = powerType,
+                                effectPower = powerLevels[i].trim { it <= ' ' }
                         )
 
                         powerByLevel[i + 1] = powerByLevel1
@@ -110,7 +108,7 @@ class TFTScrapper(
 
 
             val explainMana =
-                championDoc.select(".p-2.text-left.font-size-11 div:nth-child(4) div:not(.text-yellow)").text()
+                    championDoc.select(".p-2.text-left.font-size-11 div:nth-child(4) div:not(.text-yellow)").text()
 
             var initMana = 0
             var maxMana = 0
@@ -118,8 +116,8 @@ class TFTScrapper(
             if (!explainMana.contains("없음")) {
                 val s = explainMana.split(": ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 val split =
-                    s[1].split("/".toRegex()).dropLastWhile { it.isEmpty() }
-                        .toTypedArray()
+                        s[1].split("/".toRegex()).dropLastWhile { it.isEmpty() }
+                                .toTypedArray()
                 try {
                     initMana = Integer.valueOf(split[0].replace("\\D".toRegex(), "").trim { it <= ' ' })
                     maxMana = Integer.valueOf(split[1].replace("\\D".toRegex(), "").trim { it <= ' ' })
@@ -129,18 +127,18 @@ class TFTScrapper(
             }
 
             val champion = Champion(
-                championName = championName,
-                championEngName = championEngName,
-                cost = cost,
-                traits = traits,
-                attachRange = attachRange,
-                skillName = skillName,
-                skillExplanation = skillExplanation,
-                powersByLevel = powersByLevel,
-                initMana = initMana,
-                maxMana = maxMana,
-                season = season,
-                imageUrl = imageUrl
+                    championName = championName,
+                    cost = cost,
+                    traits = traits,
+                    attachRange = attachRange,
+                    skillName = skillName,
+                    skillExplanation = skillExplanation,
+                    powersByLevel = powersByLevel,
+                    initMana = initMana,
+                    maxMana = maxMana,
+                    season = season,
+                    imageUrl = imageUrl,
+                    engName = championEngName,
             )
 
             champions.add(champion)
@@ -176,7 +174,7 @@ class TFTScrapper(
             val childItems: MutableList<String> = LinkedList()
             itemRoot.select("div.text-gray:not(.line-height-1) > img").forEach(Consumer { element: Element ->
                 childItems.add(
-                    element.attr("alt")
+                        element.attr("alt")
                 )
             })
 
@@ -185,20 +183,95 @@ class TFTScrapper(
 
             val itemEngName = tooltipDocForEng.select("div.py-1").select("div > p").text()
 
-            val item: Item = Item(
-                itemName = itemName,
-                itemEngName = itemEngName,
-                itemEffect = itemEffect,
-                itemSpec = itemSpec,
-                imageUrl = imageUrl,
-                childItems = childItems,
-                season = season
-            )
 
-            items.add(item)
+            items.add(
+                    Item(
+                            itemName = itemName,
+                            itemEffect = itemEffect,
+                            itemSpec = itemSpec,
+                            imageUrl = imageUrl,
+                            childItems = childItems,
+                            season = season,
+                            engName = itemEngName,
+                    )
+            )
         }
 
         return items
     }
 
+    fun getSynergies(season: String): List<Synergy> {
+        val doc = htmlProvider.getDoc("https://lolchess.gg/synergies", listOf(localeKrCookie))
+
+
+        val (affiliationDoc, jobDoc) = doc.select(".guide-synergy-table__container")
+        val affiliationSynergies = extractSynergies(season, SynergyType.AFFILIATION, affiliationDoc)
+        val jobSynergies = extractSynergies(season, SynergyType.JOB, jobDoc)
+
+        return affiliationSynergies + jobSynergies
+    }
+
+    fun extractSynergies(season: String, type: SynergyType, doc: Element): List<Synergy> {
+
+        val select = doc.select(".guide-synergy-table__synergy")
+        return select.map { element ->
+            val synergyName = element.select(".guide-synergy-table__synergy__header .align-middle").text()
+
+            val desc = element.select(".guide-synergy-table__synergy__desc").html().replace("<br>".toRegex(), "")
+            val stats = element.select(".guide-synergy-table__synergy__stats div").stream().map { e: Element -> e.text().replace("<br>".toRegex(), "") }.collect(Collectors.toList())
+            val imageUrl = element.select(".tft-hexagon-image--24 img").attr("src")
+            val engName = imageUrl.split("/").last().split("_").first()
+
+            val champions = element.select(".guide-synergy-table__synergy__champions a").stream().map { e: Element ->
+                val hrefs = e.attr("href").split("/".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                val championName = hrefs[hrefs.size - 1]
+                championName
+            }.collect(Collectors.toList())
+
+            Synergy(
+                    season = season,
+                    type = type,
+                    name = synergyName,
+                    desc = desc,
+                    stats = stats,
+                    champions = champions,
+                    imageUrl = imageUrl,
+                    engName = engName,
+            )
+        }
+
+    }
+
+    fun getAugments(season: String): List<Augment> {
+
+        return getAugmentsByTier(season, 0)
+                .plus(getAugmentsByTier(season, 1))
+                .plus(getAugmentsByTier(season, 2))
+                .plus(getAugmentsByTier(season, 3))
+                .plus(getAugmentsByTier(season, 4))
+                .plus(getAugmentsByTier(season, 5))
+                .plus(getAugmentsByTier(season, 6))
+    }
+
+    fun getAugmentsByTier(season: String, tier: Int): List<Augment> {
+        val doc: Document = htmlProvider.getDoc("https://lolchess.gg/guide/augments/set$season?tier=$tier", listOf(localeKrCookie))
+        val tierName = doc.select(".guide-augments-box__title").text()
+
+        return doc.select(".guide-augments").map { element ->
+            val imageUrl = element.select("img").attr("src")
+            val engName = imageUrl.split("/").last().split("_").first()
+            val name = element.select(".guide-augments__title").text()
+            val desc = element.select(".guide-augments__desc").text()
+
+            Augment(
+                    season = season,
+                    name = name,
+                    engName = engName,
+                    tier = tier,
+                    tierName = tierName,
+                    desc = desc,
+                    imageUrl = imageUrl,
+            )
+        }
+    }
 }

@@ -1,6 +1,9 @@
 package com.tft.scrapbatch.scrapper
 
-import com.tft.scrapbatch.scrapper.service.ScrapperService
+import com.tft.scrapbatch.scrapper.service.AugmentService
+import com.tft.scrapbatch.scrapper.service.ChampionService
+import com.tft.scrapbatch.scrapper.service.ItemService
+import com.tft.scrapbatch.scrapper.service.SynergyService
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -9,22 +12,39 @@ import org.springframework.boot.test.context.SpringBootTest
 class TFTScrapperTest {
 
     @Autowired
-    lateinit var service: ScrapperService
+    lateinit var itemService: ItemService
+
+    @Autowired
+    lateinit var championService: ChampionService
+
+    @Autowired
+    lateinit var synergyService: SynergyService
+
+    @Autowired
+    lateinit var augmentService: AugmentService
 
     val season: String = "8"
 
     @Test
 //    @Disabled
     fun test() {
-        service.saveChampionInfos(season)
-        service.setChampionId(season)
+        championService.saveChampionInfos(season)
     }
 
     @Test
 //    @Disabled
     fun test2() {
-        service.saveItemInfos(season)
-        service.setItemId(season)
+        itemService.saveItemInfos(season)
     }
 
+    @Test
+//    @Disabled
+    fun test3() {
+        synergyService.saveSynergyInfos(season)
+    }
+
+    @Test
+    fun test4() {
+        augmentService.saveAugmentInfos(season)
+    }
 }
