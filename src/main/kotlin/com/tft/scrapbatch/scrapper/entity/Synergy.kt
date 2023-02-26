@@ -14,5 +14,6 @@ data class Synergy(
         val stats: List<String>,
         val imageUrl: String,
         val champions: List<String>,
+        override val isFixed: Boolean = false,
         override val engName: String,
 ) : TFTData

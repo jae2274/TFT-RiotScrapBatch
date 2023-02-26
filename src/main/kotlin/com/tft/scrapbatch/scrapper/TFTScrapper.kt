@@ -182,6 +182,7 @@ class TFTScrapper(
             val tooltipDocForEng = htmlProvider.getDoc(tooltipUrl, listOf(localeEnCookie))
 
             val itemEngName = tooltipDocForEng.select("div.py-1").select("div > p").text()
+            val itemEngName2 = imageUrl.split("/").last().split("_").first()
 
 
             items.add(
@@ -193,6 +194,7 @@ class TFTScrapper(
                             childItems = childItems,
                             season = season,
                             engName = itemEngName,
+                            engName2 = itemEngName2
                     )
             )
         }

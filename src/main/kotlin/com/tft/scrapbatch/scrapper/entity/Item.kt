@@ -7,13 +7,14 @@ import javax.persistence.Id
 data class Item(
         @Id
         var _id: String? = null,
-        var itemName: String = "",
-        var itemEffect: String = "",
-        var itemSpec: String = "",
-        var imageUrl: String = "",
-        var childItems: List<String> = listOf(),
-        var season: String = "",
-        var itemId: String? = null,
-        var isFixed: Boolean = false,
+        val itemName: String = "",
+        val itemEffect: String = "",
+        val itemSpec: String = "",
+        val imageUrl: String = "",
+        val childItems: List<String> = listOf(),
+        val season: String = "",
+        val itemId: String? = null,
+        override val isFixed: Boolean = false,
         override val engName: String,
+        val engName2: String = "",
 ) : TFTData

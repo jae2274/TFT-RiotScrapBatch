@@ -19,7 +19,7 @@ data class Champion(
         val maxMana: Int = 0,
         val imageUrl: String = "",
         val season: String = "",
-        val isFixed: Boolean = false,
+        override val isFixed: Boolean = false,
         override val engName: String,
 ) : TFTData {
     data class PowerByLevel(
