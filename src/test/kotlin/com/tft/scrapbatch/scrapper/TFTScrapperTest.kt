@@ -23,7 +23,7 @@ class TFTScrapperTest {
     @Autowired
     lateinit var augmentService: AugmentService
 
-    val season: String = "8"
+    val season: String = "9"
 
     @Test
 //    @Disabled

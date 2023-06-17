@@ -26,7 +26,7 @@ class TFTScrapper(
 
         val champions = mutableListOf<Champion>()
         val championElements =
-                doc.select("div.container > div.row:nth-child(1) .guide-synergy-table__synergy__champions a div")
+                doc.select(".guide-synergy-table__synergy__champions a div")
 
         val tootipUrls = mutableSetOf<String>()
 
@@ -253,6 +253,7 @@ class TFTScrapper(
                 .plus(getAugmentsByTier(season, 4))
                 .plus(getAugmentsByTier(season, 5))
                 .plus(getAugmentsByTier(season, 6))
+            .plus(getAugmentsByLegend(season,"legend"))
     }
 
     fun getAugmentsByTier(season: String, tier: Int): List<Augment> {
@@ -275,5 +276,43 @@ class TFTScrapper(
                     imageUrl = imageUrl,
             )
         }
+    }
+
+    fun getAugmentsByLegend(season: String, category: String): List<Augment> {
+        val doc: Document = htmlProvider.getDoc("https://lolchess.gg/guide/augments/set$season?category=$category", listOf(localeKrCookie))
+        val tierName = doc.select(".guide-augments-box__title").text()
+
+        return doc.select(".guide-augments").map { element ->
+            val imageUrl = element.select("img").attr("src")
+            val engName = extractEngNameFromImageUrl(imageUrl)
+            val name = element.select(".guide-augments__title").text()
+            val desc = element.select(".guide-augments__desc").text()
+
+            Augment(
+                season = season,
+                name = name,
+                engName = engName,
+                tier = -1,
+                tierName = tierName,
+                desc = desc,
+                imageUrl = imageUrl,
+            )
+        }
+    }
+
+    private fun extractEngNameFromImageUrl(imageUrl: String): String{
+
+        val split = imageUrl.split("/").last().split("_")
+
+
+        var engName = split.first()
+
+        if(engName == "Commander"){
+            engName += split[1]
+        }else if (engName == "Legend"){
+            engName = split[1]
+        }
+
+        return engName
     }
 }
